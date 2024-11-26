@@ -1,7 +1,6 @@
 import Foundation
 import Tun2SocksKitC
 import HevSocks5Tunnel
-import OSLog
 
 public enum Socks5Tunnel {
 
@@ -52,27 +51,17 @@ public enum Socks5Tunnel {
         return nil
     }
     
-    public static func run(withConfig config: Config, tunFd: Int32?,log: OSLog, completionHandler: @escaping (Int32) -> ()) {
+    public static func run(withConfig config: Config, completionHandler: @escaping (Int32) -> ()) {
         DispatchQueue.global(qos: .userInitiated).async { [completionHandler] () in
-            let code: Int32 = Socks5Tunnel.run(withConfig: config, tunFd: tunFd, log: log)
+            let code: Int32 = Socks5Tunnel.run(withConfig: config)
             completionHandler(code)
         }
     }
 
-    public static func run(withConfig config: Config, tunFd: Int32?, log: OSLog) -> Int32 {
-        
-        guard let  fileDescriptor = tunFd else {
-            guard let fileDescriptor = tunnelFileDescriptor else {
-                return -1
-            }
-            return fileDescriptor
+    public static func run(withConfig config: Config) -> Int32 {
+        guard let fileDescriptor = tunnelFileDescriptor else {
+            return -1
         }
-        
-        os_log("log: tun file descriptor:%{public}@", log: log, fileDescriptor)
-        
-//        guard let fileDescriptor = tunnelFileDescriptor else {
-//            return -1
-//        }
         switch config {
         case .file(let path):
             return hev_socks5_tunnel_main(path.path.cString(using: .utf8), fileDescriptor)
