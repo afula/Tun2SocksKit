@@ -6,8 +6,18 @@ public enum Socks5Tunnel {
 
     public enum Config {
         case file(path: URL)
+        case string(content: String)
     }
 
+    public struct Stats {
+        public struct Stat {
+            public let packets: Int
+            public let bytes: Int
+        }
+        
+        public let up: Stat
+        public let down: Stat
+    }
 
     private static var tunnelFileDescriptor: Int32? {
         var ctlInfo = ctl_info()
@@ -55,9 +65,22 @@ public enum Socks5Tunnel {
         switch config {
         case .file(let path):
             return hev_socks5_tunnel_main(path.path.cString(using: .utf8), fileDescriptor)
+        case .string(let content):
+            return hev_socks5_tunnel_main_from_str(content.cString(using: .utf8), UInt32(content.count), fileDescriptor)
         }
     }
     
+    public static var stats: Stats {
+        var tPackets: Int = 0
+        var tBytes: Int = 0
+        var rPackets: Int = 0
+        var rBytes: Int = 0
+        hev_socks5_tunnel_stats(&tPackets, &tBytes, &rPackets, &rBytes)
+        return Stats(
+            up: Stats.Stat(packets: tPackets, bytes: tBytes),
+            down: Stats.Stat(packets: rPackets, bytes: rBytes)
+        )
+    }
     
     public static func quit() {
         hev_socks5_tunnel_quit()
