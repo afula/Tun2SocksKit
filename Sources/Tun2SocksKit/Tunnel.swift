@@ -19,7 +19,7 @@ public enum Socks5Tunnel {
         public let down: Stat
     }
 
-     static var tunnelFileDescriptor: Int32? {
+     public static var tunnelFileDescriptor: Int32? {
         var ctlInfo = ctl_info()
         withUnsafeMutablePointer(to: &ctlInfo.ctl_name) {
             $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: $0.pointee)) {
